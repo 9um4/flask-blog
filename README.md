@@ -1,65 +1,80 @@
-## Chapter 02: html 파일을 사용하기
-Flask에서 HTML 파일을 반환하려면 `render_template` 함수를 사용합니다. 이를 위해 몇 가지 단계를 따라야 합니다:
+## Chapter 03: 동적으로 웹 페이지의 값을 결정하기
+Flask에서 동적으로 값을 결정하여 HTML 파일에 전달하는 방법은 `render_template` 함수와 Jinja2 템플릿 엔진을 사용하는 것입니다. Jinja2는 Flask의 기본 템플릿 엔진으로, HTML 파일에서 동적으로 값을 삽입할 수 있게 해줍니다.
 
-### 1. **템플릿 디렉토리 생성**:
-   Flask는 기본적으로 `templates` 디렉토리에서 HTML 파일을 찾습니다. 프로젝트 루트 디렉토리에 `templates` 디렉토리를 생성합니다.
+다음은 동적으로 값을 결정하여 HTML의 값을 변경하는 예제입니다.
 
-   ```bash
-   mkdir templates
-   ```
+### 1. HTML 파일 수정
+먼저 `index.html` 파일을 수정하여 동적으로 값을 받을 수 있도록 합니다. 예를 들어, `title`과 `message` 값을 동적으로 받아서 표시하도록 합니다.
 
-### 2. **HTML 파일 생성**:
-   `templates` 디렉토리에 HTML 파일을 생성합니다. 예를 들어, `index.html` 파일을 생성합니다.
+```html
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+</head>
+<body>
+    <h1>{{ message }}</h1>
+</body>
+</html>
+```
 
-   ```bash
-   touch templates/index.html  # Linux/Mac
-   type nul > templates/index.html  # Windows
-   ```
+### 2-1. 매개변수를 이용한 값의 전달
+`app.py` 파일에서 동적으로 값을 결정하고 이를 HTML 템플릿에 전달하도록 수정합니다.
 
-   `index.html` 파일에 간단한 HTML 내용을 작성합니다.
+```python
+from flask import Flask, render_template
 
-   ```html
-   <!-- templates/index.html -->
-   <!DOCTYPE html>
-   <html lang="en">
-   <head>
-       <meta charset="UTF-8">
-       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-       <title>Hello, Flask!</title>
-   </head>
-   <body>
-       <h1>Hello, Flask with HTML!</h1>
-   </body>
-   </html>
-   ```
+app = Flask(__name__)
 
-### 3. **Flask 애플리케이션에서 HTML 파일 반환**:
-   `render_template` 함수를 사용하여 HTML 파일을 반환하도록 `app.py` 파일을 수정합니다.
+@app.route('/')
+def home():
+    # 동적으로 값을 결정
+    title = "Hello, Dynamic Flask!"
+    message = "This is a dynamic message passed to the template."
+    
+    # render_template 함수로 값을 전달
+    return render_template('index.html', title=title, message=message)
 
-   ```python
-   from flask import Flask, render_template
+if __name__ == '__main__':
+    app.run(debug=True)
+```
 
-   app = Flask(__name__)
+### 2-2. 딕셔너리 자료형을 이용한 값의 전달
+일일이 매개변수를 지정해 줄 필요 없이 아래와 같이 딕셔너리 자료형을 이용해 html 템플릿에 전달할 수 있습니다.
+```py
+from flask import Flask, render_template
 
-   @app.route('/')
-   def home():
-       return render_template('index.html')
+app = Flask(__name__)
 
-   if __name__ == '__main__':
-       app.run(debug=True)
-   ```
+@app.route('/')
+def home():
+    # 동적으로 값을 결정
+    context = {
+        'title': "Hello, Dynamic Flask!",
+        'message': "This is a dynamic message passed to the template."
+    }
+    
+    # render_template 함수로 딕셔너리를 전달
+    return render_template('index.html', **context)
 
-이제 Flask 애플리케이션을 실행하면, 루트 경로(`/`)에 접속할 때 `index.html` 파일이 반환됩니다.
+if __name__ == '__main__':
+    app.run(debug=True)
+```
+
+### 3. Flask 애플리케이션 실행
+Flask 애플리케이션을 실행하고 브라우저에서 확인합니다.
 
 ```bash
 flask run
 ```
 
-브라우저에서 `http://127.0.0.1:5000/`를 방문하면 "Hello, Flask with HTML!" 메시지가 있는 HTML 페이지를 볼 수 있습니다.
+브라우저에서 `http://127.0.0.1:5000/`를 방문하면, 동적으로 설정된 `title`과 `message` 값이 HTML 페이지에 표시됩니다.
 
 ### 요약
-1. 프로젝트 루트 디렉토리에 `templates` 디렉토리를 생성합니다.
-2. `templates` 디렉토리에 HTML 파일을 생성합니다.
-3. Flask 애플리케이션에서 `render_template` 함수를 사용하여 HTML 파일을 반환합니다.
+1. **HTML 파일 수정**: 템플릿 변수(`{{ 변수명 }}`)를 사용하여 동적 값을 받을 수 있도록 HTML 파일을 수정합니다.
+2. **Flask 애플리케이션 수정**: `render_template` 함수에 전달할 변수를 설정하고, 이를 템플릿으로 전달합니다.
 
-이 방법으로 HTML 파일을 반환할 수 있습니다. 추가로, 템플릿 내에서 변수 사용이나 다른 템플릿 기능을 사용할 수도 있습니다.
+이 방법을 사용하면 Flask에서 동적으로 값을 결정하여 HTML 파일에 반영할 수 있습니다. Jinja2 템플릿 엔진을 사용하면 조건문, 반복문 등을 통해 더욱 복잡한 동적 콘텐츠도 쉽게 생성할 수 있습니다.
