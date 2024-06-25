@@ -4,27 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- {% block <블록이름> %} {% endblock %}으로 감싸진 부분은 상속된 템플릿에 대체됨 -->
-    <!-- 상속된 템플릿에 해당 블록을 대체할 내용이 없을 경우 감싸진 부분 사이에 있는 내용이 표시됨 -->
     <title>{% block title %}Default Title{% endblock %}</title>
 </head>
 <body>
-    <header>
-        <h1>My Website Header</h1>
-        <nav>
-            <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/about">About</a></li>
-            </ul>
-        </nav>
-    </header>
+    {% include 'components/header.html' %}
 
     <main>
         {% block content %}{% endblock %}
     </main>
 
-    <footer>
-        <p>My Website Footer</p>
-    </footer>
+    {% include 'components/footer.html' %}
 </body>
 </html>
