@@ -1,28 +1,88 @@
-## Chapter 03: 동적으로 웹 페이지의 값을 결정하기
-Flask에서 동적으로 값을 결정하여 HTML 파일에 전달하는 방법은 `render_template` 함수와 Jinja2 템플릿 엔진을 사용하는 것입니다. Jinja2는 Flask의 기본 템플릿 엔진으로, HTML 파일에서 동적으로 값을 삽입할 수 있게 해줍니다.
+## Chapter 04: 템플릿의 상속을 바탕으로 한 모듈화 (1)
+Flask와 Jinja2 템플릿 엔진을 사용하여 공통 요소(예: 헤더, 푸터 등)를 별도의 템플릿 파일에 저장하고 이를 포함하는 방식으로 웹 페이지를 구현할 수 있습니다. 이를 위해 Jinja2의 템플릿 상속 및 포함 기능을 사용할 수 있습니다.
 
-다음은 동적으로 값을 결정하여 HTML의 값을 변경하는 예제입니다.
+### 예제: 공통 헤더와 푸터 포함하기
 
-### 1. HTML 파일 수정
-먼저 `index.html` 파일을 수정하여 동적으로 값을 받을 수 있도록 합니다. 예를 들어, `title`과 `message` 값을 동적으로 받아서 표시하도록 합니다.
+#### 1. 프로젝트 디렉토리 구조
+먼저 프로젝트 디렉토리를 구성합니다:
+
+```
+myflaskapp/
+├── templates/
+│   ├── base.html
+│   ├── index.html
+│   ├── about.html
+└── app.py
+```
+
+#### 2. `base.html` 파일 생성
+공통 요소를 포함할 기본 템플릿 파일 `base.html`을 생성합니다:
+
+> `{% block <블록 이름> %} {% endblock %}`으로 감싸져 있는 부분이 추후 상속할 템플릿에서 대체될 내용입니다. 해당 내용이 존재하지 않을 경우 상속된 템플릿에 적혀있는 내용을 우선으로 표시됩니다.
 
 ```html
-<!-- templates/index.html -->
+<!-- templates/base.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title }}</title>
+    <title>{% block title %}Default Title{% endblock %}</title>
 </head>
 <body>
-    <h1>{{ message }}</h1>
+    <header>
+        <h1>My Website Header</h1>
+        <nav>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/about">About</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <p>My Website Footer</p>
+    </footer>
 </body>
 </html>
 ```
 
-### 2-1. 매개변수를 이용한 값의 전달
-`app.py` 파일에서 동적으로 값을 결정하고 이를 HTML 템플릿에 전달하도록 수정합니다.
+#### 3. `index.html` 파일 생성
+홈 페이지 템플릿 파일 `index.html`을 생성하고 `base.html`을 상속합니다:
+
+```html
+<!-- templates/index.html -->
+{% extends 'base.html' %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<h2>Welcome to the Home Page</h2>
+<p>This is the home page content.</p>
+{% endblock %}
+```
+
+#### 4. `about.html` 파일 생성
+소개 페이지 템플릿 파일 `about.html`을 생성하고 `base.html`을 상속합니다:
+
+```html
+<!-- templates/about.html -->
+{% extends 'base.html' %}
+
+{% block title %}About{% endblock %}
+
+{% block content %}
+<h2>About Us</h2>
+<p>This is the about page content.</p>
+{% endblock %}
+```
+
+#### 5. `app.py` 파일 수정
+Flask 애플리케이션을 수정하여 라우트와 템플릿을 연결합니다:
 
 ```python
 from flask import Flask, render_template
@@ -31,50 +91,19 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    # 동적으로 값을 결정
-    title = "Hello, Dynamic Flask!"
-    message = "This is a dynamic message passed to the template."
-    
-    # render_template 함수로 값을 전달
-    return render_template('index.html', title=title, message=message)
+    return render_template('index.html')
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
 ```
-
-### 2-2. 딕셔너리 자료형을 이용한 값의 전달
-일일이 매개변수를 지정해 줄 필요 없이 아래와 같이 딕셔너리 자료형을 이용해 html 템플릿에 전달할 수 있습니다.
-```py
-from flask import Flask, render_template
-
-app = Flask(__name__)
-
-@app.route('/')
-def home():
-    # 동적으로 값을 결정
-    context = {
-        'title': "Hello, Dynamic Flask!",
-        'message': "This is a dynamic message passed to the template."
-    }
-    
-    # render_template 함수로 딕셔너리를 전달
-    return render_template('index.html', **context)
-
-if __name__ == '__main__':
-    app.run(debug=True)
-```
-
-### 3. Flask 애플리케이션 실행
-Flask 애플리케이션을 실행하고 브라우저에서 확인합니다.
-
-```bash
-flask run
-```
-
-브라우저에서 `http://127.0.0.1:5000/`를 방문하면, 동적으로 설정된 `title`과 `message` 값이 HTML 페이지에 표시됩니다.
 
 ### 요약
-1. **HTML 파일 수정**: 템플릿 변수(`{{ 변수명 }}`)를 사용하여 동적 값을 받을 수 있도록 HTML 파일을 수정합니다.
-2. **Flask 애플리케이션 수정**: `render_template` 함수에 전달할 변수를 설정하고, 이를 템플릿으로 전달합니다.
+1. **기본 템플릿 생성**: 공통 요소(헤더, 푸터 등)를 포함하는 `base.html` 파일을 생성합니다.
+2. **페이지별 템플릿 생성**: 개별 페이지 템플릿(`index.html`, `about.html` 등)을 생성하고 `base.html`을 상속합니다.
+3. **Flask 애플리케이션 수정**: 라우트와 템플릿을 연결하여 각 페이지를 렌더링합니다.
 
-이 방법을 사용하면 Flask에서 동적으로 값을 결정하여 HTML 파일에 반영할 수 있습니다. Jinja2 템플릿 엔진을 사용하면 조건문, 반복문 등을 통해 더욱 복잡한 동적 콘텐츠도 쉽게 생성할 수 있습니다.
+이 방법을 사용하면 공통 요소를 한 곳에서 관리할 수 있어 유지보수가 쉬워지고, 템플릿 상속을 통해 재사용성을 높일 수 있습니다.
